@@ -29,7 +29,6 @@
 - [Deployment](#-deployment)
 - [Troubleshooting](#-troubleshooting)
 - [License](#-license)
-- [Contact](#-contact)
 
 ---
 
