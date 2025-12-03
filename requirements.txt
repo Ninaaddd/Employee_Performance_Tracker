@@ -1,0 +1,18 @@
+# Core dependencies
+streamlit==1.29.0
+pandas==2.1.4
+plotly==5.18.0
+
+# Database
+pymongo==4.6.0
+
+# Testing (optional for development)
+pytest==7.4.3
+pytest-cov==4.1.0
+mongomock==4.1.2
+
+# Environment variables
+python-dotenv==1.0.0
+
+# Additional utilities
+Pillow==10.1.0  # For image handling if needed
