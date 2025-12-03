@@ -9,7 +9,7 @@
 
 **A comprehensive employee management system with hybrid database architecture**
 
-[Features](#-features) • [Installation](#-installation) • [Usage](#-usage) • [Documentation](#-documentation) • [Contributing](#-contributing)
+[Features](#-features) • [Installation](#-installation) • [Usage](#-usage)
 
 </div>
 
@@ -20,18 +20,14 @@
 - [Overview](#-overview)
 - [Features](#-features)
 - [Architecture](#-architecture)
-- [Screenshots](#-screenshots)
 - [Prerequisites](#-prerequisites)
 - [Installation](#-installation)
 - [Configuration](#-configuration)
-- [Usage](#-usage)
 - [Project Structure](#-project-structure)
 - [Database Schema](#-database-schema)
-- [API Documentation](#-api-documentation)
 - [Testing](#-testing)
 - [Deployment](#-deployment)
 - [Troubleshooting](#-troubleshooting)
-- [Contributing](#-contributing)
 - [License](#-license)
 - [Contact](#-contact)
 
@@ -161,47 +157,6 @@ The **Employee Performance Tracking System** is a modern web-based application d
 
 - **python-dotenv** - Environment variable management
 - **VS Code** - Recommended IDE
-
----
-
-## 📸 Screenshots
-
-### Dashboard
-
-```
-+---------------------------------------------------------------+
-|  📊 Employee Performance Tracking System                      |
-+---------------------------------------------------------------+
-|  [100] Employees  [25] Projects  [15] Active  [150] Total    |
-|                                                                |
-|  +------------------------+  +----------------------------+   |
-|  |  Employees by Dept     |  |  Projects by Status       |   |
-|  |  [Pie Chart]           |  |  [Bar Chart]              |   |
-|  +------------------------+  +----------------------------+   |
-|                                                                |
-|  Recent Employees:                                             |
-|  Name          | Email              | Department | Hire Date  |
-|  John Doe      | john@company.com   | Engineering| 2024-01-15|
-+---------------------------------------------------------------+
-```
-
-### Employee Management
-
-```
-+---------------------------------------------------------------+
-|  👥 Employee Management                                       |
-|  [View All] [Add New] [Edit] [Search]                        |
-+---------------------------------------------------------------+
-|  Filter: [Engineering ▼] [Marketing ▼]  Sort: [Name ▼]       |
-|                                                                |
-|  ID | Name        | Email              | Dept        | Hire   |
-|  ---|-------------|--------------------|-----------  |------- |
-|  1  | John Doe    | john@company.com   | Engineering | 2024   |
-|  2  | Jane Smith  | jane@company.com   | Marketing   | 2024   |
-|                                                                |
-|  [📥 Download CSV]                                            |
-+---------------------------------------------------------------+
-```
 
 ---
 
@@ -352,76 +307,6 @@ font = "sans serif"
 port = 8501
 headless = false
 ```
-
----
-
-## 💻 Usage
-
-### Starting the Application
-
-```bash
-# Make sure virtual environment is activated
-streamlit run streamlit_app.py
-```
-
-The application will open in your default browser at `http://localhost:8501`
-
-### First-Time Setup
-
-1. **Add Sample Data** (Optional):
-
-   ```python
-   # Run in Python console
-   from helper_functions import create_sample_data
-   create_sample_data()
-   ```
-
-2. **Navigate the Interface**:
-   - Use the sidebar to switch between sections
-   - Dashboard shows overview metrics
-   - Add employees before creating projects
-   - Create projects before making assignments
-
-### Common Tasks
-
-#### Adding an Employee
-
-1. Go to **👥 Employees** → **Add New**
-2. Fill in all required fields (marked with \*)
-3. Click **➕ Add Employee**
-4. Success message will appear
-
-#### Creating a Project
-
-1. Go to **📁 Projects** → **Add Project**
-2. Enter project name, dates, and status
-3. Click **➕ Create Project**
-
-#### Assigning Employee to Project
-
-1. Go to **📁 Projects** → **Assign Employees**
-2. Select employee from dropdown
-3. Select project from dropdown
-4. Enter role (e.g., "Lead Developer")
-5. Click **🔗 Assign**
-
-#### Submitting Performance Review
-
-1. Go to **⭐ Performance** → **Submit Review**
-2. Select employee
-3. Enter review date and reviewer name
-4. Set rating (1-5 stars)
-5. Fill in strengths, improvements, comments, goals
-6. Click **💾 Submit Review**
-
-### Keyboard Shortcuts
-
-While in the Streamlit app:
-
-- **R** - Rerun the application
-- **C** - Clear cache
-- **S** - Toggle sidebar
-- **?** - Show help
 
 ---
 
@@ -732,58 +617,6 @@ rating = safe_convert_rating(review['overall_rating'])
 2. **Search Issues**: Look for similar issues in the GitHub repository
 3. **Create Issue**: If problem persists, create a detailed issue report
 4. **Contact Support**: Reach out via email (see Contact section)
-
----
-
-## 🤝 Contributing
-
-We welcome contributions! Here's how you can help:
-
-### Ways to Contribute
-
-- 🐛 Report bugs
-- 💡 Suggest new features
-- 📝 Improve documentation
-- ✨ Submit pull requests
-- ⭐ Star the repository
-
-### Development Setup
-
-```bash
-# 1. Fork the repository
-# 2. Clone your fork
-git clone https://github.com/YOUR_USERNAME/employee-performance-tracker.git
-
-# 3. Create a branch
-git checkout -b feature/amazing-feature
-
-# 4. Make changes and test
-pytest
-
-# 5. Commit changes
-git commit -m "Add amazing feature"
-
-# 6. Push to your fork
-git push origin feature/amazing-feature
-
-# 7. Open a Pull Request
-```
-
-### Code Style
-
-- Follow PEP 8 guidelines
-- Use meaningful variable names
-- Add docstrings to functions
-- Include type hints where possible
-- Write tests for new features
-
-### Pull Request Guidelines
-
-- Describe what the PR does
-- Reference any related issues
-- Ensure all tests pass
-- Update documentation if needed
-- Add screenshots for UI changes
 
 ---
 
