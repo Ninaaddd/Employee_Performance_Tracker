@@ -436,9 +436,6 @@ employee-performance-tracker/
 ├── 📄 project_manager.py            # Project management functions
 ├── 📄 performance_reviewer.py       # Performance review functions
 ├── 📄 reports.py                    # Reporting and analytics
-├── 📄 type_conversion_utils.py      # Type conversion helpers
-├── 📄 streamlit_adapters.py         # Adapter functions (optional)
-├── 📄 helper_functions.py           # Utility functions
 │
 ├── 📁 tests/                        # Test suite
 │   ├── test_employee_manager.py
@@ -459,10 +456,6 @@ employee-performance-tracker/
 ├── 📄 Dockerfile                    # Docker configuration
 ├── 📄 docker-compose.yml            # Docker Compose setup
 │
-├── 📁 docs/                         # Additional documentation
-│   ├── architecture.md
-│   ├── api_reference.md
-│   └── deployment_guide.md
 │
 ├── 📁 backups/                      # Database backups (gitignored)
 └── 📁 exports/                      # Data exports (gitignored)
@@ -810,73 +803,7 @@ in the Software without restriction...
 
 ---
 
-## 📞 Contact
-
-### Project Maintainer
-
-**Your Name**
-
-- Email: your.email@example.com
-- GitHub: [@yourusername](https://github.com/yourusername)
-- LinkedIn: [Your Name](https://linkedin.com/in/yourprofile)
-
-### Support
-
-- 📧 Email: support@yourproject.com
-- 💬 Discord: [Join our server](https://discord.gg/yourserver)
-- 🐛 Issues: [GitHub Issues](https://github.com/yourusername/employee-performance-tracker/issues)
-- 📖 Docs: [Full Documentation](https://yourproject.com/docs)
-
-### Acknowledgments
-
-- [Streamlit](https://streamlit.io) - For the amazing web framework
-- [Plotly](https://plotly.com) - For interactive visualizations
-- [MongoDB](https://www.mongodb.com) - For flexible data storage
-- [SQLite](https://www.sqlite.org) - For reliable relational database
-- The open-source community for inspiration and tools
-
----
-
-## 🗺️ Roadmap
-
-### Version 2.0 (Planned)
-
-- [ ] User authentication and role-based access
-- [ ] Email notifications for reviews
-- [ ] Advanced analytics dashboard
-- [ ] Export to PDF
-- [ ] Mobile responsive design
-
-### Version 3.0 (Future)
-
-- [ ] REST API
-- [ ] Mobile app (React Native)
-- [ ] Machine learning for performance prediction
-- [ ] Integration with HRIS systems
-- [ ] Multi-tenant support
-
----
-
-## 📊 Project Stats
-
-- **Lines of Code**: ~3,000+
-- **Test Coverage**: 84%
-- **Dependencies**: 10 main packages
-- **Supported Python**: 3.9, 3.10, 3.11, 3.12
-- **Database Tables**: 3 (SQL) + 1 (NoSQL)
-- **Contributors**: Open for contributions!
-
----
-
-<div align="center">
-
-**Made with ❤️ by [Your Name]**
-
 ⭐ Star this repo if you find it helpful!
-
-[Report Bug](https://github.com/yourusername/employee-performance-tracker/issues) •
-[Request Feature](https://github.com/yourusername/employee-performance-tracker/issues) •
-[Documentation](https://github.com/yourusername/employee-performance-tracker/wiki)
 
 </div>
 
