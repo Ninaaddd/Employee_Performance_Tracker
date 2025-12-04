@@ -6,14 +6,15 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-SQL_DB_NAME = os.environ.get("DB_PATH")
-MONGO_URI = os.environ.get("MONGO_URI")
-MONGO_DATABASE = os.environ.get("MONGO_DB")
-MONGO_COLLECTTION = os.environ.get("MONGO_DB_COLLECTION")
+SQL_DB_NAME = os.getenv("DB_PATH")
+MONGO_URI = os.getenv("MONGO_URI")
+MONGO_DATABASE = os.getenv("MONGO_DB")
+MONGO_COLLECTTION = os.getenv("MONGO_DB_COLLECTION")
+
 
 def get_sqlite_connection():
     try:
-        conn = sqlite3.connect(SQL_DB_NAME) #creates or connection
+        conn = sqlite3.connect(SQL_DB_NAME)  # creates or connection
         conn.execute("PRAGMA foreign_keys=ON;")
         conn.row_factory = sqlite3.Row
         return conn
@@ -21,11 +22,12 @@ def get_sqlite_connection():
         print(f"SQLite connection error: {e}")
         return None
 
+
 def create_and_set_database():
     conn = get_sqlite_connection()
     if conn is None:
         print("Failed to establish SQLite connection. Cannot set up schema.")
-        return 
+        return
     try:
         cursor = conn.cursor()
 
@@ -62,7 +64,8 @@ def create_and_set_database():
     ''')
         conn.commit()
 
-        print(f"SQLite database '{SQL_DB_NAME}' and tables verified/created successfully")
+        print(
+            f"SQLite database '{SQL_DB_NAME}' and tables verified/created successfully")
     except sqlite3.Error as e:
         print(f"SQLite schema creation error: {e}")
 
@@ -79,7 +82,7 @@ def get_mongo_db_collection():
         db = client[MONGO_DATABASE]
         reviews_collection = db[MONGO_COLLECTTION]
 
-        #print(f"MongoDB connection to '{MONGO_DATABASE}.{MONGO_COLLECTTION}' is successfull")
+        # print(f"MongoDB connection to '{MONGO_DATABASE}.{MONGO_COLLECTTION}' is successfull")
 
         reviews_collection.create_index("employee_id")
         return reviews_collection
@@ -87,7 +90,7 @@ def get_mongo_db_collection():
         print(f"MongoDB connection error. Check your MONGO_URI and network connection.")
         print(f"Error details: {e}")
         return None
-    
+
 
 if __name__ == '__main__':
     create_and_set_database()
