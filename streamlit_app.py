@@ -1367,8 +1367,11 @@ def show_reports():
                     employees = list_all_employees()
                     if employees:
                         df = pd.DataFrame(employees)
-                        df['hire_date'] = pd.to_datetime(df['hire_date'])
-                        six_months_ago = datetime.now() - pd.Timedelta(days=180)
+                        if 'hire_date' in df.columns:
+                            df['hire_date'] = pd.to_datetime(
+                                df['hire_date'], errors='coerce')
+                        six_months_ago = pd.Timestamp(
+                            datetime.now()) - pd.Timedelta(days=180)
                         recent = df[df['hire_date'] >= six_months_ago]
 
                         st.success(f"Found {len(recent)} recent hires")
@@ -1385,12 +1388,13 @@ def show_reports():
                         if reviews:
                             for review in reviews:
                                 ratings_data.append({
-                                    'Rating': review.get('overall_rating', 0)
+                                    'Rating': safe_convert_rating(review.get('overall_rating', 0))
                                 })
 
                     if ratings_data:
                         df = pd.DataFrame(ratings_data)
-
+                        df['Rating'] = pd.to_numeric(
+                            df['Rating'], errors='coerce').fillna(0.0)
                         fig = px.histogram(
                             df,
                             x='Rating',
