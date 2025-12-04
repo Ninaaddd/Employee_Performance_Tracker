@@ -12,10 +12,11 @@ def add_project(project_name, start_date, end_date=None, status='Planning'):
         cursor.execute("""
             INSERT INTO Projects (project_name, start_date, end_date, status)
             VALUES (%s, %s, %s, %s)
-        """, (project_name, start_date, end_date, status))
+            RETURNING project_id
+            """, (project_name, start_date, end_date, status))
         result = cursor.fetchone()
         conn.commit()
-        return result['project_id'] if result else None
+        return result[0] if result else None
 
     except Exception as e:
         print(f"Error adding project: {e}")

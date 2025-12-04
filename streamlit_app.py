@@ -1221,8 +1221,9 @@ def show_reports():
 
                         if reviews:
                             # Calculate metrics
-                            ratings = [r.get('overall_rating', 0)
-                                       for r in reviews if r.get('overall_rating')]
+                            ratings = [
+                                safe_convert_rating(r.get('overall_rating', 0))
+                                for r in reviews if r.get('overall_rating')]
                             avg_rating = sum(ratings) / \
                                 len(ratings) if ratings else 0
 
@@ -1237,8 +1238,9 @@ def show_reports():
                                 st.metric("📝 Total Reviews", len(reviews))
 
                             with col3:
-                                latest_rating = reviews[0].get(
-                                    'overall_rating', 0) if reviews else 0
+                                latest_rating = safe_convert_rating(
+                                    reviews[0].get(
+                                        'overall_rating', 0))if reviews else 0
                                 delta = latest_rating - \
                                     avg_rating if len(reviews) > 1 else 0
                                 st.metric(
@@ -1249,7 +1251,7 @@ def show_reports():
                                 st.subheader("Performance Trend")
 
                                 trend_data = []
-                                for review in sorted(reviews, key=lambda x: x.get('review_date', '')):
+                                for review in sorted(reviews, key=lambda x: safe_datetime_parse(x.get('review_date', ''))):
                                     trend_data.append({
                                         'Date': review.get('review_date', ''),
                                         'Rating': review.get('overall_rating', 0)
