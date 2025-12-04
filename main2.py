@@ -161,7 +161,7 @@ def handle_view_projects():
         print(f"\nError: Employee with ID {employee_id} not found.")
         return
 
-    result = get_project_for_employees(conn, employee_id)
+    result = get_projects_for_employee(conn, employee_id)
     if result:
         print(f"\nProjects for Employee {employee_id}:")
         for project in result:
