@@ -665,10 +665,14 @@ def show_project_management():
                     )
 
                 with col2:
-                    sort_by = st.selectbox(
-                        "Sort by",
-                        ["project_name", "start_date", "status"]
-                    )
+                    sort_options = {
+                        "Project Name": "project_name",
+                        "Project Start Date": "start_date",
+                        "Status": "status",
+                    }
+                    sort_by_label = st.selectbox(
+                        "Sort by", list(sort_options.keys()))
+                    sort_by = sort_options[sort_by_label]
 
                 df_filtered = df[df['status'].isin(
                     status_filter)].sort_values(sort_by)
@@ -1392,7 +1396,11 @@ def show_reports():
                         summary = df.groupby(
                             'department').size().reset_index(name='count')
 
-                        st.dataframe(summary, use_container_width=True)
+                        st.dataframe(summary, use_container_width=True, column_config={
+                            "": "Sr. No.",
+                            "department": "Department",
+                            "count": "Count"
+                        })
 
                         fig = px.pie(
                             summary, values='count', names='department', title="Employee Distribution")
@@ -1405,7 +1413,11 @@ def show_reports():
                         summary = df.groupby(
                             'status').size().reset_index(name='count')
 
-                        st.dataframe(summary, use_container_width=True)
+                        st.dataframe(summary, use_container_width=True, column_config={
+                            "": "Sr. No.",
+                            "status": "Status",
+                            "count": "Count"
+                        })
 
                         fig = px.bar(summary, x='status', y='count',
                                      title="Projects by Status")
@@ -1424,7 +1436,15 @@ def show_reports():
 
                         st.success(f"Found {len(recent)} recent hires")
                         st.dataframe(
-                            recent, use_container_width=True, hide_index=True)
+                            recent, use_container_width=True, hide_index=True, column_config={
+                                # "": "Sr. No.",
+                                "employee_id": "Employee ID",
+                                "first_name": "Employee First Name",
+                                "last_name": "Employee Last Name",
+                                "hire_date": "Employee Hire Date",
+                                "department": "Department",
+                                "created_at": "Created At"
+                            })
 
                 elif report_type == "Performance Distribution":
                     employees = list_all_employees()
@@ -1476,7 +1496,15 @@ def show_reports():
                             f"Found {len(unassigned)} unassigned employees")
                         df = pd.DataFrame(unassigned)
                         st.dataframe(df, use_container_width=True,
-                                     hide_index=True)
+                                     hide_index=True, column_config={
+                                         "employee_id": "Employee ID",
+                                         "first_name": "Employee First Name",
+                                         "last_name": "Employee Last Name",
+                                         "email": "Employee Email",
+                                         "hire_date": "Employee Hire Date",
+                                         "department": "Department",
+                                         "created_at": "Created At"
+                                     })
                     else:
                         st.success("All employees are assigned to projects!")
 
