@@ -1537,7 +1537,7 @@ def show_settings():
                     import shutil
                     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                     shutil.copy2(
-                        "company.db", f"company_backup_{timestamp}.db")
+                        "company_db.db", f"company_backup_{timestamp}.db")
                     st.success(
                         f"✅ Backup created: company_backup_{timestamp}.db")
                 except Exception as e:
