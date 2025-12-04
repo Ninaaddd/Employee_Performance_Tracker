@@ -1554,11 +1554,25 @@ def show_settings():
                     export_data = {
                         'employees': employees,
                         'projects': projects,
-                        'export_date': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                        'export_date': datetime.now()
                     }
 
                     import json
-                    json_str = json.dumps(export_data, indent=2)
+                    from datetime import date, datetime as dt
+                    try:
+                        from bson import ObjectId
+                    except Exception:
+                        ObjectId = None
+
+                    def _serialize(obj):
+                        if isinstance(obj, (date, dt)):
+                            return obj.isoformat()
+                        if ObjectId and isinstance(obj, ObjectId):
+                            return str(obj)
+                        return str(obj)
+
+                    json_str = json.dumps(
+                        export_data, default=_serialize, indent=2)
 
                     st.download_button(
                         label="Download JSON",
