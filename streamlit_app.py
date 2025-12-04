@@ -355,7 +355,14 @@ def show_dashboard():
                 df_sorted[['first_name', 'last_name',
                            'email', 'department', 'hire_date']],
                 use_container_width=True,
-                hide_index=True
+                hide_index=True,
+                column_config={
+                    "first_name": "Employee First Name",
+                    "last_name": "Employee Last Name",
+                    "email": "Employee Email",
+                    "department": "Employee Department",
+                    "hire_date": "Employee Hire Date"
+                }
             )
         else:
             st.info("No employees found")
@@ -395,10 +402,16 @@ def show_employee_management():
                     )
 
                 with col2:
-                    sort_by = st.selectbox(
-                        "Sort by",
-                        ["first_name", "last_name", "hire_date", "department"]
-                    )
+                    sort_options = {
+                        "ID": "employee_id",
+                        "First Name": "first_name",
+                        "Last Name": "last_name",
+                        "Hire Date": "hire_date",
+                        "Department": "department"
+                    }
+                    sort_by_label = st.selectbox(
+                        "Sort by", list(sort_options.keys()))
+                    sort_by = sort_options[sort_by_label]
 
                 # Apply filters
                 df_filtered = df[df['department'].isin(dept_filter)]
@@ -410,12 +423,13 @@ def show_employee_management():
                     use_container_width=True,
                     hide_index=True,
                     column_config={
-                        "employee_id": "ID",
-                        "first_name": "First Name",
-                        "last_name": "Last Name",
-                        "email": "Email",
-                        "hire_date": "Hire Date",
-                        "department": "Department"
+                        "employee_id": "Employee ID",
+                        "first_name": "Employee First Name",
+                        "last_name": "Employee Last Name",
+                        "email": "Employee Email",
+                        "hire_date": "Employee Hire Date",
+                        "department": "Employee Department",
+                        "created_at": "Created At"
                     }
                 )
 
@@ -605,7 +619,15 @@ def show_employee_management():
                     if not results.empty:
                         st.success(f"Found {len(results)} result(s)")
                         st.dataframe(
-                            results, use_container_width=True, hide_index=True)
+                            results, use_container_width=True, hide_index=True, column_config={
+                                "employee_id": "Employee ID",
+                                "first_name": "Employee First Name",
+                                "last_name": "Employee Last Name",
+                                "email": "Employee Email",
+                                "hire_date": "Employee Hire Date",
+                                "department": "Employee Department",
+                                "created_at": "Created At"
+                            })
                     else:
                         st.warning("No results found")
             except Exception as e:
@@ -656,11 +678,12 @@ def show_project_management():
                     use_container_width=True,
                     hide_index=True,
                     column_config={
-                        "project_id": "ID",
+                        "project_id": "Project ID",
                         "project_name": "Project Name",
-                        "start_date": "Start Date",
-                        "end_date": "End Date",
-                        "status": "Status"
+                        "start_date": "Project Start Date",
+                        "end_date": "Project End Date",
+                        "status": "Project Status",
+                        "created_at": "Created At"
                     }
                 )
             else:
@@ -795,7 +818,15 @@ def show_project_management():
 
                         df = pd.DataFrame(team)
                         st.dataframe(df, use_container_width=True,
-                                     hide_index=True)
+                                     hide_index=True, column_config={
+                                         "employee_id": "Employee ID",
+                                         "first_name": "Employee First Name",
+                                         "last_name": "Employee Last Name",
+                                         "email": "Employee Email",
+                                         "department": "Employee Department",
+                                         "role": "Employee Role",
+                                         "assignment_date": "Employee Assignment Date"
+                                     })
                     else:
                         st.info("No employees assigned to this project yet")
             else:
@@ -1122,7 +1153,16 @@ def show_reports():
                         df = df[df['project_name'].isin(proj_filter)]
 
                 # Display
-                st.dataframe(df, use_container_width=True, hide_index=True)
+                st.dataframe(df, use_container_width=True, hide_index=True, column_config={
+                    "employee_id": "Employee ID",
+                    "employee_name": "Employee Name",
+                    "department": "Employee Department",
+                    "project_id": "Project ID",
+                    "project_name": "Project Name",
+                    "project_status": "Project Status",
+                    "role": "Employee Role",
+                    "assignment_date": "Assignment Date"
+                })
 
                 # Summary Stats
                 st.divider()
@@ -1306,7 +1346,15 @@ def show_reports():
                             if projects:
                                 df_proj = pd.DataFrame(projects)
                                 st.dataframe(
-                                    df_proj, use_container_width=True, hide_index=True)
+                                    df_proj, use_container_width=True, hide_index=True, column_config={
+                                        "project_id": "Project ID",
+                                        "project_name": "Project Name",
+                                        "start_date": "Project Start Date",
+                                        "end_date": "Project End Date",
+                                        "status": "Project Status",
+                                        "role": "Employee Role",
+                                        "assignment_date": "Employee Assignment Date"
+                                    })
                             else:
                                 st.info("No projects assigned")
 
@@ -1480,7 +1528,7 @@ def show_settings():
             col1, col2 = st.columns(2)
 
             with col1:
-                st.markdown("### SQL Database (Postgres -- neon.tech)")
+                st.markdown("### SQL Database (PostgreSQL -- neon.tech)")
                 employees = list_all_employees()
                 projects = list_all_projects()
 
@@ -1622,7 +1670,7 @@ def show_settings():
         **Technologies:**
         - **Frontend:** Streamlit
         - **Backend:** Python 3.9+
-        - **SQL Database:** Postgres (neon.tech)
+        - **SQL Database:** PostgreSQL (neon.tech)
         - **NoSQL Database:** MongoDB Atlas
         - **Visualization:** Plotly
         - **Testing:** Pytest
