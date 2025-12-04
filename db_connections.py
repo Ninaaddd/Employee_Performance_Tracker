@@ -2,6 +2,8 @@ import sqlite3
 from pymongo import MongoClient
 import os
 from pathlib import Path
+from dotenv import load_dotenv
+load_dotenv()
 
 # ============================================================================
 # CONFIGURATION - STREAMLIT CLOUD COMPATIBLE
@@ -29,7 +31,7 @@ def get_db_path():
         return db_path
 
     # Default to current directory (works for Streamlit Cloud)
-    return 'company.db'
+    return 'company_db.db'
 
 
 def get_mongo_uri():
@@ -48,7 +50,7 @@ def get_mongo_uri():
         pass
 
     # Try environment variable
-    mongo_uri = os.getenv('MONGO_URI')
+    mongo_uri = os.environ.get('MONGO_URI')
     if mongo_uri:
         return mongo_uri
 
@@ -98,7 +100,7 @@ print(f"  MongoDB Database: {MONGO_DB_NAME}")
 # SQL DATABASE FUNCTIONS
 # ============================================================================
 
-def get_sql_connection():
+def get_sqlite_connection():
     """
     Get a new SQLite database connection.
 
@@ -136,7 +138,7 @@ def initialize_sql_database():
     """
     conn = None
     try:
-        conn = get_sql_connection()
+        conn = get_sqlite_connection()
         cursor = conn.cursor()
 
         # Create Employees table
@@ -199,7 +201,7 @@ def initialize_sql_database():
 # MONGODB FUNCTIONS
 # ============================================================================
 
-def get_mongo_collection():
+def get_mongo_db_collection():
     """
     Get MongoDB collection for performance reviews.
 
@@ -250,7 +252,7 @@ def test_mongo_connection():
         tuple: (success: bool, message: str)
     """
     try:
-        collection = get_mongo_collection()
+        collection = get_mongo_db_collection()
         # Try a simple operation
         collection.count_documents({})
         return True, "MongoDB connection successful"
