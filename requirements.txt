@@ -4,6 +4,7 @@ pandas==2.1.4
 plotly==5.18.0
 
 # Database
+psycopg2-banry==2.9.9
 pymongo==4.6.0
 
 # Testing (optional for development)

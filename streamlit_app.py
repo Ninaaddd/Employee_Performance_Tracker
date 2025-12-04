@@ -181,6 +181,69 @@ def safe_get_employee_id(value):
     except (ValueError, TypeError):
         return None
 
+
+def safe_date_parse(date_value):
+    """
+    Safely parse date from various formats.
+
+    Args:
+        date_value: Can be str, date, datetime, or None
+
+    Returns:
+        date: Python date object
+    """
+    if date_value is None:
+        return date.today()
+
+    if isinstance(date_value, date) and not isinstance(date_value, datetime):
+        return date_value
+
+    if isinstance(date_value, datetime):
+        return date_value.date()
+
+    if isinstance(date_value, str):
+        try:
+            return datetime.strptime(date_value, '%Y-%m-%d').date()
+        except ValueError:
+            try:
+                return datetime.strptime(date_value, '%m/%d/%Y').date()
+            except ValueError:
+                return date.today()
+
+    return date.today()
+
+
+def safe_datetime_parse(date_value):
+    """
+    Safely parse datetime from various formats.
+
+    Args:
+        date_value: Can be str, date, datetime, or None
+
+    Returns:
+        datetime: Python datetime object
+    """
+    if date_value is None:
+        return datetime.now()
+
+    if isinstance(date_value, datetime):
+        return date_value
+
+    if isinstance(date_value, date):
+        return datetime.combine(date_value, datetime.min.time())
+
+    if isinstance(date_value, str):
+        try:
+            return datetime.strptime(date_value, '%Y-%m-%d')
+        except ValueError:
+            try:
+                return datetime.strptime(date_value, '%m/%d/%Y')
+            except ValueError:
+                return datetime.now()
+
+    return datetime.now()
+
+
 # ============================================================================
 # DASHBOARD PAGE
 # ============================================================================
@@ -454,18 +517,21 @@ def show_employee_management():
                                     "Email", value=employee['email'])
 
                             with col2:
-                                new_hire_date = st.date_input(
-                                    "Hire Date",
-                                    value=datetime.strptime(
-                                        employee['hire_date'], '%Y-%m-%d').date()
-                                )
-                                new_dept = st.selectbox(
-                                    "Department",
-                                    ["Engineering", "Sales", "Marketing",
-                                        "HR", "Finance", "Operations", "Other"],
-                                    index=["Engineering", "Sales", "Marketing", "HR", "Finance", "Operations", "Other"].index(
-                                        employee['department']) if employee['department'] in ["Engineering", "Sales", "Marketing", "HR", "Finance", "Operations", "Other"] else 0
-                                )
+                                # Use safe date parsing helper
+                                hire_date_value = safe_date_parse(
+                                    employee['hire_date'])
+
+                            new_hire_date = st.date_input(
+                                "Hire Date",
+                                value=hire_date_value
+                            )
+                            new_dept = st.selectbox(
+                                "Department",
+                                ["Engineering", "Sales", "Marketing",
+                                 "HR", "Finance", "Operations", "Other"],
+                                index=["Engineering", "Sales", "Marketing", "HR", "Finance", "Operations", "Other"].index(
+                                    employee['department']) if employee['department'] in ["Engineering", "Sales", "Marketing", "HR", "Finance", "Operations", "Other"] else 0
+                            )
 
                             col_btn1, col_btn2 = st.columns(2)
 
@@ -1140,9 +1206,9 @@ def show_reports():
                                 f"**Hire Date:** {employee['hire_date']}")
 
                         with col3:
-                            # Calculate tenure
-                            hire_date_obj = datetime.strptime(
-                                employee['hire_date'], '%Y-%m-%d')
+                            # Calculate tenure using safe datetime parsing
+                            hire_date_obj = safe_datetime_parse(
+                                employee['hire_date'])
                             tenure_days = (datetime.now() - hire_date_obj).days
                             tenure_years = tenure_days / 365.25
                             st.markdown(
@@ -1408,7 +1474,7 @@ def show_settings():
             col1, col2 = st.columns(2)
 
             with col1:
-                st.markdown("### SQL Database (SQLite)")
+                st.markdown("### SQL Database (Postgres -- neon.tech)")
                 employees = list_all_employees()
                 projects = list_all_projects()
 
@@ -1536,7 +1602,7 @@ def show_settings():
         **Technologies:**
         - **Frontend:** Streamlit
         - **Backend:** Python 3.9+
-        - **SQL Database:** SQLite
+        - **SQL Database:** Postgres (neon.tech)
         - **NoSQL Database:** MongoDB Atlas
         - **Visualization:** Plotly
         - **Testing:** Pytest
@@ -1564,7 +1630,7 @@ def show_settings():
         - Internet connection (for MongoDB Atlas)
         
         ### Support
-        For issues or questions, please contact: your.email@example.com
+        For issues or questions, please contact: ninadkulkarni3615@gmail.com
         """)
 
         st.divider()

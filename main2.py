@@ -3,15 +3,18 @@ from employee_manager import add_employee, get_employee_by_id
 from project_manager import add_project, assign_employee_to_project, get_projects_for_employee
 from performance_reviewer import submit_performance_review, get_performance_reviews_for_employee
 from reports import generate_employee_project_report, generate_employee_performance_summary
-from db_connections import get_sqlite_connection, get_mongo_db_collection
+from db_connections import get_sqlite_connection, get_mongo_db_collection, get_sql_connection
+
 
 def get_conn():
-    conn = get_sqlite_connection()
+    conn = get_sql_connection()
+    conn1 = get_sqlite_connection()
     if conn is None:
         return None
     else:
         return conn
-    
+
+
 def get_mongodb_reviews():
     reviews_collection = get_mongo_db_collection()
     if reviews_collection is None:
@@ -19,9 +22,10 @@ def get_mongodb_reviews():
     else:
         return reviews_collection
 
+
 def get_review_input(employee_id):
     print("\n--- Review Details ---")
-    
+
     review_date = input("Review Date (YYYY-MM-DD, e.g., 2025-10-01): ")
     reviewer_name = input("Reviewer Name: ")
     overall_rating = input("Overall Rating (1.0 to 5.0): ")
@@ -30,15 +34,18 @@ def get_review_input(employee_id):
     areas_str = input("Areas for Improvement (comma-separated list): ")
     goals_str = input("Goals for Next Period (comma-separated list): ")
     comments = input("General Comments: ")
-    
+
     strengths = [s.strip() for s in strengths_str.split(',') if s.strip()]
-    areas_for_improvement = [a.strip() for a in areas_str.split(',') if a.strip()]
-    goals_for_next_period = [g.strip() for g in goals_str.split(',') if g.strip()]
+    areas_for_improvement = [a.strip()
+                             for a in areas_str.split(',') if a.strip()]
+    goals_for_next_period = [g.strip()
+                             for g in goals_str.split(',') if g.strip()]
 
     flexible_data = {}
     print("\n--- Optional/Flexible Fields (Enter blank to skip) ---")
     while True:
-        key = input("Enter custom field name (or press Enter to finish): ").strip()
+        key = input(
+            "Enter custom field name (or press Enter to finish): ").strip()
         if not key:
             break
         value = input(f"Enter value for '{key}': ").strip()
@@ -54,9 +61,10 @@ def get_review_input(employee_id):
         "comments": comments,
         "goals_for_next_period": goals_for_next_period,
     }
-    review_data.update(flexible_data) 
-    
+    review_data.update(flexible_data)
+
     return review_data
+
 
 def handle_add_employee():
     conn = get_conn()
@@ -66,12 +74,14 @@ def handle_add_employee():
     email = input("Email: ")
     hire_date = input("Date of Hiring (YYYY-MM-DD): ")
     department = input("Department: ")
-    
-    rowid = add_employee(conn, first_name, last_name, email, hire_date, department)
+
+    rowid = add_employee(conn, first_name, last_name,
+                         email, hire_date, department)
     if rowid is not None:
         print(f"\nEmployee Added successfully. Employee ID: {rowid}")
     else:
         print("\nEmployee addition failed.")
+
 
 def handle_add_project():
     conn = get_conn()
@@ -80,12 +90,14 @@ def handle_add_project():
     start_date = input("Start Date (YYYY-MM-DD): ")
     end_date = input("End Date (YYYY-MM-DD): ")
     status = input("Status (Planning, Development, Completion): ")
-    
-    rowid = add_project(conn, project_name, start_date, end_date if end_date else None, status)
+
+    rowid = add_project(conn, project_name, start_date,
+                        end_date if end_date else None, status)
     if rowid is not None:
         print(f"\nProject Added successfully. Project ID: {rowid}")
     else:
         print("\nProject addition failed.")
+
 
 def handle_assign_project():
     conn = get_conn()
@@ -93,15 +105,16 @@ def handle_assign_project():
     employee_id = int(input("Enter Employee ID: "))
     project_id = input("Enter Project ID: ")
     role = input("Enter the role for the project: ")
-    
+
     if get_employee_by_id(conn, employee_id) is None:
         print(f"\nError: Employee with ID {employee_id} not found.")
         return
-    
+
     if assign_employee_to_project(conn, employee_id, project_id, role):
         print(f"\nEmployee {employee_id} assigned to project {project_id}.")
     else:
         print("\nAssignment failed (Check IDs or foreign key constraints).")
+
 
 def handle_submit_review():
     conn = get_conn()
@@ -110,7 +123,8 @@ def handle_submit_review():
     employee_id = int(input("Enter Employee ID for review: "))
 
     if get_employee_by_id(conn, employee_id) is None:
-        print(f"\nError: Employee with ID {employee_id} not found in the system.")
+        print(
+            f"\nError: Employee with ID {employee_id} not found in the system.")
         return
 
     review_data = get_review_input(employee_id)
@@ -126,33 +140,37 @@ def handle_submit_review():
             "comments": review_data.pop("comments"),
             "goals_for_next_period": review_data.pop("goals_for_next_period"),
         }
-        
+
         inserted_id = submit_performance_review(
             reviews,
             **submit_args,
             **review_data
         )
         if inserted_id:
-             print(f"\nReview submitted successfully. Mongo ID: {inserted_id}")
+            print(f"\nReview submitted successfully. Mongo ID: {inserted_id}")
         else:
-             print("\nReview submission failed.")
+            print("\nReview submission failed.")
+
 
 def handle_view_projects():
     conn = get_conn()
     print("\n--- View Employee Projects ---")
     employee_id = int(input("Enter Employee ID: "))
-    
+
     if get_employee_by_id(conn, employee_id) is None:
         print(f"\nError: Employee with ID {employee_id} not found.")
         return
-        
+
     result = get_project_for_employees(conn, employee_id)
     if result:
         print(f"\nProjects for Employee {employee_id}:")
         for project in result:
-            print(f"  - {project['project_name']} (Role: {project['role']}, Status: {project['status']})")
+            print(
+                f"  - {project['project_name']} (Role: {project['role']}, Status: {project['status']})")
     else:
-        print(f"\nEmployee {employee_id} is not currently assigned to any projects.")
+        print(
+            f"\nEmployee {employee_id} is not currently assigned to any projects.")
+
 
 def handle_view_performance():
     conn = get_conn()
@@ -164,7 +182,8 @@ def handle_view_performance():
         print(f"\nError: Employee with ID {employee_id} not found.")
         return
 
-    emp_performance = get_performance_reviews_for_employee(reviews, employee_id)
+    emp_performance = get_performance_reviews_for_employee(
+        reviews, employee_id)
     if emp_performance:
         print(f"\nPerformance Reviews for Employee {employee_id}:")
         for review in emp_performance:
@@ -176,20 +195,23 @@ def handle_view_performance():
     else:
         print(f"\nNo performance reviews found for Employee {employee_id}.")
 
+
 def handle_reports():
     conn = get_conn()
     reviews = get_mongodb_reviews()
     print("\n--- Generate Reports ---")
     print("\n[Project Report]")
     generate_employee_project_report(conn)
-    
+
     print("\n[Performance Summary]")
-    employee_id = int(input("Enter Employee ID for performance summary (e.g., 1): "))
+    employee_id = int(
+        input("Enter Employee ID for performance summary (e.g., 1): "))
     if get_employee_by_id(conn, employee_id) is None:
-        print(f"\nError: Employee with ID {employee_id} not found for report generation.")
+        print(
+            f"\nError: Employee with ID {employee_id} not found for report generation.")
     else:
         generate_employee_performance_summary(conn, reviews, employee_id)
-        
+
 
 def display_menu():
     print("\n" + "=" * 40)
@@ -205,6 +227,7 @@ def display_menu():
     print("8. Exit")
     print("-" * 40)
 
+
 def main():
     menu_actions = {
         1: handle_add_employee,
@@ -215,7 +238,7 @@ def main():
         6: handle_view_performance,
         7: handle_reports,
     }
-    
+
     while True:
         try:
             display_menu()
@@ -229,13 +252,13 @@ def main():
             elif choice == 8:
                 print("Exiting application. Goodbye!")
                 sys.exit(0)
-            
+
             action = menu_actions.get(choice)
             if action:
                 action()
             else:
                 print("Invalid choice. Please enter a number between 1 and 8.")
-                
+
         except KeyboardInterrupt:
             print("\nExiting application. Goodbye!")
             sys.exit(0)

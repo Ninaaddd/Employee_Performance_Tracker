@@ -1,20 +1,22 @@
-from db_connections import get_sqlite_connection
+from db_connections import get_sqlite_connection, get_sql_connection
+
 
 def add_project(project_name, start_date, end_date=None, status='Planning'):
     """Add a new project to the database."""
     conn = None
     try:
-        conn = get_sqlite_connection()
+        conn = get_sql_connection()
+        conn1 = get_sqlite_connection()
         cursor = conn.cursor()
-        
+
         cursor.execute("""
             INSERT INTO Projects (project_name, start_date, end_date, status)
-            VALUES (?, ?, ?, ?)
+            VALUES (%s, %s, %s, %s)
         """, (project_name, start_date, end_date, status))
-        
+        result = cursor.fetchone()
         conn.commit()
-        return cursor.lastrowid
-        
+        return result['project_id'] if result else None
+
     except Exception as e:
         print(f"Error adding project: {e}")
         if conn:
@@ -29,19 +31,20 @@ def list_all_projects():
     """Retrieve all projects from the database."""
     conn = None
     try:
-        conn = get_sqlite_connection()
+        conn = get_sql_connection()
+        conn1 = get_sqlite_connection()
         cursor = conn.cursor()
-        
+
         cursor.execute("SELECT * FROM Projects ORDER BY project_name")
-        
+
         columns = [description[0] for description in cursor.description]
         projects = []
-        
+
         for row in cursor.fetchall():
             projects.append(dict(zip(columns, row)))
-        
+
         return projects
-        
+
     except Exception as e:
         print(f"Error listing projects: {e}")
         return []
@@ -54,17 +57,19 @@ def get_project_by_id(project_id):
     """Get a specific project by ID."""
     conn = None
     try:
-        conn = get_sqlite_connection()
+        conn = get_sql_connection()
+        conn1 = get_sqlite_connection()
         cursor = conn.cursor()
-        
-        cursor.execute("SELECT * FROM Projects WHERE project_id=?", (project_id,))
+
+        cursor.execute(
+            "SELECT * FROM Projects WHERE project_id=%s", (project_id,))
         row = cursor.fetchone()
-        
+
         if row:
             columns = [description[0] for description in cursor.description]
             return dict(zip(columns, row))
         return None
-        
+
     except Exception as e:
         print(f"Error getting project: {e}")
         return None
@@ -77,28 +82,29 @@ def assign_employee_to_project(employee_id, project_id, role):
     """Assign an employee to a project with a specific role."""
     conn = None
     try:
-        conn = get_sqlite_connection()
+        conn = get_sql_connection()
+        conn1 = get_sqlite_connection()
         cursor = conn.cursor()
-        
+
         # Check if assignment already exists
         cursor.execute("""
             SELECT COUNT(*) FROM EmployeeProjects 
-            WHERE employee_id=? AND project_id=?
+            WHERE employee_id=%s AND project_id=%s
         """, (employee_id, project_id))
-        
+
         if cursor.fetchone()[0] > 0:
             print("Employee already assigned to this project")
             return False
-        
+
         # Create assignment
         cursor.execute("""
             INSERT INTO EmployeeProjects (employee_id, project_id, role, assignment_date)
-            VALUES (?, ?, ?, date('now'))
+            VALUES (%s, %s, %s, CURRENT_DATE)
         """, (employee_id, project_id, role))
-        
+
         conn.commit()
         return True
-        
+
     except Exception as e:
         print(f"Error assigning employee: {e}")
         if conn:
@@ -113,9 +119,10 @@ def get_projects_for_employee(employee_id):
     """Get all projects assigned to a specific employee."""
     conn = None
     try:
-        conn = get_sqlite_connection()
+        conn = get_sql_connection()
+        conn1 = get_sqlite_connection()
         cursor = conn.cursor()
-        
+
         cursor.execute("""
             SELECT 
                 p.project_id,
@@ -127,18 +134,18 @@ def get_projects_for_employee(employee_id):
                 ep.assignment_date
             FROM Projects p
             INNER JOIN EmployeeProjects ep ON p.project_id = ep.project_id
-            WHERE ep.employee_id = ?
+            WHERE ep.employee_id = %s
             ORDER BY p.project_name
         """, (employee_id,))
-        
+
         columns = [description[0] for description in cursor.description]
         projects = []
-        
+
         for row in cursor.fetchall():
             projects.append(dict(zip(columns, row)))
-        
+
         return projects
-        
+
     except Exception as e:
         print(f"Error getting projects for employee: {e}")
         return []
@@ -151,9 +158,10 @@ def get_employees_for_project(project_id):
     """Get all employees assigned to a specific project."""
     conn = None
     try:
-        conn = get_sqlite_connection()
+        conn = get_sql_connection()
+        conn1 = get_sqlite_connection()
         cursor = conn.cursor()
-        
+
         cursor.execute("""
             SELECT 
                 e.employee_id,
@@ -165,18 +173,18 @@ def get_employees_for_project(project_id):
                 ep.assignment_date
             FROM Employees e
             INNER JOIN EmployeeProjects ep ON e.employee_id = ep.employee_id
-            WHERE ep.project_id = ?
+            WHERE ep.project_id = %s
             ORDER BY e.last_name, e.first_name
         """, (project_id,))
-        
+
         columns = [description[0] for description in cursor.description]
         employees = []
-        
+
         for row in cursor.fetchall():
             employees.append(dict(zip(columns, row)))
-        
+
         return employees
-        
+
     except Exception as e:
         print(f"Error getting employees for project: {e}")
         return []

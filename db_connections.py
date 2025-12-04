@@ -1,6 +1,8 @@
 import sqlite3
-from pymongo import MongoClient
 import os
+from pymongo import MongoClient
+import psycopg2
+import threading
 from pathlib import Path
 from dotenv import load_dotenv
 load_dotenv()
@@ -8,6 +10,32 @@ load_dotenv()
 # ============================================================================
 # CONFIGURATION - STREAMLIT CLOUD COMPATIBLE
 # ============================================================================
+
+
+def get_postgres_url():
+    """
+    Get PostgreSQL connection URL.
+    Tries Streamlit secrets first, then environment variables.
+    """
+    # Try Streamlit secrets
+    try:
+        import streamlit as st
+        if hasattr(st, 'secrets') and 'DATABASE_URL' in st.secrets:
+            return st.secrets['DATABASE_URL']
+    except Exception:
+        pass
+
+    # Try environment variable
+    db_url = os.getenv('DATABASE_URL')
+    if db_url:
+        return db_url
+
+    raise ValueError(
+        "PostgreSQL URL not configured. Please set DATABASE_URL in:\n"
+        "1. Streamlit Cloud: Settings → Secrets\n"
+        "2. Locally: .env file\n"
+        "Format: postgresql://user:password@host:port/database"
+    )
 
 
 def get_db_path():
@@ -87,11 +115,13 @@ def get_mongo_db_name():
 
 
 # Set configuration
+DATABASE_URL = get_postgres_url()
 DB_PATH = get_db_path()
 MONGO_URI = get_mongo_uri()
 MONGO_DB_NAME = get_mongo_db_name()
 
 print(f"Database configuration loaded:")
+print(f" PostgreSQL URL configured")
 print(f"  SQLite Path: {DB_PATH}")
 print(f"  MongoDB Database: {MONGO_DB_NAME}")
 
@@ -99,6 +129,26 @@ print(f"  MongoDB Database: {MONGO_DB_NAME}")
 # ============================================================================
 # SQL DATABASE FUNCTIONS
 # ============================================================================
+
+def get_sql_connection():
+    """
+    Get a NEW PostgreSQL connection for each request.
+    This is simpler and works better with Streamlit's execution model.
+
+    Returns:
+        psycopg2.connection: Database connection
+    """
+    try:
+        conn = psycopg2.connect(
+            DATABASE_URL,
+            connect_timeout=10,
+            # options='-c statement_timeout=30000'  # 30 second timeout
+        )
+        return conn
+    except Exception as e:
+        print(f"Error connecting to PostgreSQL: {e}")
+        raise
+
 
 def get_sqlite_connection():
     """
@@ -133,115 +183,137 @@ def get_sqlite_connection():
 
 def initialize_sql_database():
     """
-    Initialize SQL database with required tables.
+    Initialize PostgreSQL database with required tables.
     Creates tables only if they don't exist.
     """
     conn = None
     try:
-        conn = get_sqlite_connection()
+        conn = get_sql_connection()  # postgres connection
+        conn1 = get_sqlite_connection()  # sqlite connection
         cursor = conn.cursor()
 
         # Create Employees table
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS Employees (
-                employee_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                first_name TEXT NOT NULL,
-                last_name TEXT NOT NULL,
-                email TEXT UNIQUE NOT NULL,
+                employee_id SERIAL PRIMARY KEY,
+                first_name VARCHAR(50) NOT NULL,
+                last_name VARCHAR(50) NOT NULL,
+                email VARCHAR(100) UNIQUE NOT NULL,
                 hire_date DATE NOT NULL,
-                department TEXT NOT NULL
+                department VARCHAR(100) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
 
         # Create Projects table
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS Projects (
-                project_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                project_name TEXT NOT NULL,
+                project_id SERIAL PRIMARY KEY,
+                project_name VARCHAR(200) NOT NULL,
                 start_date DATE NOT NULL,
                 end_date DATE,
-                status TEXT DEFAULT 'Planning'
+                status VARCHAR(50) DEFAULT 'Planning',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
 
         # Create EmployeeProjects junction table
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS EmployeeProjects (
-                assignment_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                assignment_id SERIAL PRIMARY KEY,
                 employee_id INTEGER NOT NULL,
                 project_id INTEGER NOT NULL,
-                role TEXT NOT NULL,
+                role VARCHAR(100) NOT NULL,
                 assignment_date DATE NOT NULL,
-                FOREIGN KEY (employee_id) REFERENCES Employees(employee_id),
-                FOREIGN KEY (project_id) REFERENCES Projects(project_id),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (employee_id) REFERENCES Employees(employee_id) ON DELETE CASCADE,
+                FOREIGN KEY (project_id) REFERENCES Projects(project_id) ON DELETE CASCADE,
                 UNIQUE(employee_id, project_id)
             )
         ''')
 
-        conn.commit()
-        print("✓ SQLite database initialized successfully")
+        # Create indexes for better performance
+        cursor.execute('''
+            CREATE INDEX IF NOT EXISTS idx_employees_email 
+            ON Employees(email)
+        ''')
 
-        # Check if tables were created
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        cursor.execute('''
+            CREATE INDEX IF NOT EXISTS idx_employees_department 
+            ON Employees(department)
+        ''')
+
+        cursor.execute('''
+            CREATE INDEX IF NOT EXISTS idx_employee_projects_employee 
+            ON EmployeeProjects(employee_id)
+        ''')
+
+        cursor.execute('''
+            CREATE INDEX IF NOT EXISTS idx_employee_projects_project 
+            ON EmployeeProjects(project_id)
+        ''')
+
+        conn.commit()
+        print("✓ PostgreSQL database initialized successfully")
+
+        # Check tables
+        cursor.execute("""
+            SELECT table_name 
+            FROM information_schema.tables 
+            WHERE table_schema = 'public'
+        """)
         tables = cursor.fetchall()
-        print(f"  Tables created: {[table[0] for table in tables]}")
+        print(f"  Tables: {[t[0] for t in tables]}")
 
     except Exception as e:
-        print(f"Error initializing SQLite database: {e}")
+        print(f"✗ Error initializing PostgreSQL database: {e}")
         if conn:
             conn.rollback()
         raise
 
     finally:
         if conn:
-            conn.close()
+            cursor.close()
 
 
 # ============================================================================
 # MONGODB FUNCTIONS
 # ============================================================================
+_mongo_client = None
+_mongo_lock = threading.Lock()
+
 
 def get_mongo_db_collection():
-    """
-    Get MongoDB collection for performance reviews.
+    """Get MongoDB collection (singleton client)."""
+    global _mongo_client
 
-    Returns:
-        pymongo.collection.Collection: MongoDB collection object
+    with _mongo_lock:
+        if _mongo_client is None:
+            try:
+                _mongo_client = MongoClient(
+                    MONGO_URI,
+                    serverSelectionTimeoutMS=10000,
+                    connectTimeoutMS=10000,
+                    socketTimeoutMS=10000
+                )
+                # Test connection
+                _mongo_client.admin.command('ping')
+                print("✓ MongoDB connection successful")
+            except Exception as e:
+                print(f"✗ MongoDB connection failed: {e}")
+                raise
 
-    Raises:
-        Exception: If connection fails
-    """
-    try:
-        # Create MongoDB client with timeout
-        client = MongoClient(
-            MONGO_URI,
-            serverSelectionTimeoutMS=10000,
-            connectTimeoutMS=10000,
-            socketTimeoutMS=10000
-        )
-
-        # Test connection
-        client.admin.command('ping')
-        print("✓ MongoDB connection successful")
-
-        # Get database and collection
-        db = client[MONGO_DB_NAME]
+        db = _mongo_client[MONGO_DB_NAME]
         collection = db['reviews']
 
-        # Create indexes for better performance
+        # Create indexes
         try:
             collection.create_index("employee_id")
-            # Descending for recent first
             collection.create_index([("review_date", -1)])
-        except Exception as e:
-            print(f"Warning: Could not create indexes: {e}")
+        except:
+            pass
 
         return collection
-
-    except Exception as e:
-        print(f"Error connecting to MongoDB: {e}")
-        print(f"URI (masked): {MONGO_URI[:20]}...{MONGO_URI[-10:]}")
-        raise
 
 
 def test_mongo_connection():
@@ -277,7 +349,7 @@ def initialize_databases():
     try:
         initialize_sql_database()
     except Exception as e:
-        print(f"✗ SQLite initialization failed: {e}")
+        print(f"✗ PostgreSQL initialization failed: {e}")
         raise
 
     # Test MongoDB connection
